@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+
+        <referenceBlock name="super.marketing.top.banner"
+                        template="Superpayments_SuperPaymentHyva::marketing/super-banner.phtml" />
+
+        <referenceContainer name="cart-drawer.bottom">
+            <block class="Magento\Checkout\Block\Onepage\Link"
+                   name="super_marketing_minicart_banner"
+                   template="Superpayments_SuperPaymentHyva::marketing/super-minicart-callout.phtml"
+                   after="checkout.cart.totals.container"
+                   ifconfig="payment/super_payment_gateway/active">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Superpayments\SuperPayment\ViewModel\MarketingBanner
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+
+    </body>
+</page>
