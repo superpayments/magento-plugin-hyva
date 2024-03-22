@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+
+        <referenceBlock name="product.info"
+                        template="Superpayments_SuperPaymentHyva::product/view/product-info.phtml">
+
+            <block  class="Magento\Catalog\Block\Product\View" 
+                    name="product.info.superpayment.banner"
+                    ifconfig="payment/super_payment_gateway/active" 
+                    template="Superpayments_SuperPaymentHyva::marketing/super-product-callout-pdp.phtml" >
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Superpayments\SuperPayment\ViewModel\MarketingBanner
+                    </argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>
