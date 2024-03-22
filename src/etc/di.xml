@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+     <type name="Hyva\Checkout\Magewire\Main">     
+        <plugin name="superpayment-redirect-plugin" 
+                type="Superpayments\SuperPaymentHyva\Plugin\Magewire\Main" sortOrder="1" disabled="false" />    
+    </type>
+</config>
