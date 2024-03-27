@@ -1,34 +1,32 @@
-This repository contains the module that enables SuperPayments support for Hyvä.
+This repository contains the module that enables SuperPayments support for Hyvä, https://www.hyva.io/.
+
 This module has a dependency on the SuperPayments Magento 2 module, see https://github.com/superpayments/magento-plugin.
 
-## Installation
+## Generate the Super Payments Hyvä Module
 
+1. Update the Super Payments Hyvä Module version.
 
-1. Install the module using composer: 
+2. A new release can be created through using: https://github.com/superpayments/magento-plugin-hyva/releases/new.
 
-```bash
-composer require superpayments/superpayment-hyva
-```
+## Installation the module manually
 
-2. Enable the module:
+1. Download and extract the ZIP file.
 
-```bash
-bin/magento module:enable Superpayments_SuperPaymentHyva
-```
+2. Connect to the Magento server.
 
-3. Upgrade the database:
+3. Navigate to the "app/code" directory. Create a folder named "Superpayments", then enter the newly created folder and create another folder named "SuperPaymentHyva".
 
-```bash
-bin/magento setup:upgrade
-```
+4. Go to the path "app/code/Superpayments/SuperPaymentHyva". Copy all the Super Payments Hyvä Module folders and files from the "src" folder in the downloaded module.
 
-4. Let Hyvä know about the new module:
+5.  In the terminal, run the command:
 
 ```bash
 php bin/magento hyva:config:generate
 ```
 
-5. Generate the CSS files:
+6. Check the file "app/etc/hyva-themes.json" to ensure that the path to the Hyva compatibility module files is correctly specified. This is necessary for generating styles.
+
+7. Generate the CSS files:
 
 ```bash
 npm --prefix vendor/hyva-themes/magento2-default-theme/web/tailwind/ run ci
@@ -40,6 +38,12 @@ Or from your theme:
 ```bash
 npm --prefix app/design/frontend/<Vendor>/<Theme>/web/tailwind run ci
 npm --prefix app/design/frontend/<Vendor>/<Theme>/web/tailwind run build-prod
+```
+
+8. Run the command and then configure the module in the admin panel.
+
+```bash
+php bin/magento setup:upgrade
 ```
 
 ## Missing styles?
