@@ -1,6 +1,16 @@
 This repository contains the module that enables SuperPayments support for Hyvä, https://www.hyva.io/.
 
-This module has a dependency on the SuperPayments Magento 2 module, see https://github.com/superpayments/magento-plugin.
+## Prerequisites
+
+You must install the following **before** you install the Super Payments Hyvä plugin.
+
+1. Install the SuperPayments Magento 2 Module, https://github.com/superpayments/magento-plugin
+
+2, Install the Hyva Checkout, https://docs.hyva.io/checkout/hyva-checkout/getting-started/index.html
+
+3. Hyva Theme, https://docs.hyva.io/hyva-themes/getting-started/index.html (there is a default theme)
+
+4. Hyva Compatibility Module, https://docs.hyva.io/hyva-themes/compatibility-modules/index.html#compat-module-development-videos
 
 ## Generate the Super Payments Hyvä Module
 
