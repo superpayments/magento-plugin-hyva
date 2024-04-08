@@ -6,7 +6,7 @@ You must install the following **before** you install the Super Payments Hyvä p
 
 1. Install the SuperPayments Magento 2 Module, https://github.com/superpayments/magento-plugin
 
-2, Install the Hyva Checkout, https://docs.hyva.io/checkout/hyva-checkout/getting-started/index.html
+2. Install the Hyva Checkout, https://docs.hyva.io/checkout/hyva-checkout/getting-started/index.html
 
 3. Hyva Theme, https://docs.hyva.io/hyva-themes/getting-started/index.html (there is a default theme)
 
