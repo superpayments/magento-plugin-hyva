@@ -1,0 +1,32 @@
+{
+    "name": "superpayments/superpayment-hyva",
+    "description": "SuperPayments Payment for Magento Hyva Theme",
+    "version": "2.4.4",
+    "type": "magento2-module",
+    "require": {
+        "php": ">=7.4",
+        "superpayments/superpayment": ">=2.4.4"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Superpayments\\SuperPaymentHyva\\": ""
+        }
+    },
+    "support": {
+        "docs": "https://docs.superpayments.com/docs/magento"
+    },
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "authors": [
+        {
+            "name": "Super Payments Limited",
+            "email": "support@superpayments.com",
+            "homepage": "https://business.superpayments.com/"
+        }
+    ]
+}
