@@ -8,7 +8,7 @@ $isCheckout = $viewModel->getIsCheckout();
 $bannerData = [];
 ?>
 
-<div id="top-super-banner" 
+<div id="top-super-banner"
      x-data="SuperTopBanner()"
      class="h-0 shadow-[inset_0_-1px_2px_0_rgba(0,0,0,.125)] bg-white transition-[height] duration-500
             [&>*]:opacity-0 [&>*]:invisible [&>*]:delay-200 [&>*]:transition-opacity"
@@ -23,7 +23,7 @@ $bannerData = [];
         }
 
         if (!empty($bannerData)) {
-            echo '<super-banner cartAmount="' . $bannerData['minorUnitAmount'] . '" page="' .  $bannerData['page'] . '" cartId="' . $bannerData['cart']['id'] . '" colorScheme="' . $bannerData['scheme'] . '" cartItems="' . $viewModel->cartItemsEncode($bannerData['cart']['items']) . '"></super-banner>';
+            echo '<super-banner cartAmount="' . $bannerData['minorUnitAmount'] . '" page="' .  $bannerData['page'] . '" cartId="' . $bannerData['cart']['id'] . '" cartItems="' . $viewModel->cartItemsEncode($bannerData['cart']['items']) . '"></super-banner>';
         }
     ?>
 </div>
