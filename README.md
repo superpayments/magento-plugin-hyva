@@ -24,7 +24,7 @@ You must install the following **before** you install the Super Payments Hyvä p
 
 2. Connect to the Magento server.
 
-3. Navigate to the "app/code" directory. Create a folder named "Superpayments", then enter the newly created folder and create another folder named "SuperPaymentHyva".
+3. Navigate to the "app/code" directory. Make sure the folder SuperPayments” exists, and create another folder called “SuperPaymentHyva” in that folder.
 
 4. Go to the path "app/code/Superpayments/SuperPaymentHyva". Copy all the Super Payments Hyvä Module folders and files from the "src" folder in the downloaded module.
 
