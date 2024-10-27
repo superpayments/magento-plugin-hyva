@@ -4,7 +4,7 @@
     "version": "2.5.0",
     "type": "magento2-module",
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.3.13",
         "superpayments/superpayment": ">=2.5.0"
     },
     "autoload": {
