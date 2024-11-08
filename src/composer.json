@@ -5,7 +5,7 @@
     "type": "magento2-module",
     "require": {
         "php": ">=7.4",
-        "superpayments/superpayment": ">=2.5.0"
+        "superpayments/superpayment": ">=2.6.3"
     },
     "autoload": {
         "files": [
