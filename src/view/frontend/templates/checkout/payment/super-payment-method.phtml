@@ -19,8 +19,9 @@
         description: '',
 
         init() {
-            this.method.querySelector('label').innerHTML = '';
-
+            if(this.method !== null) {
+                this.method.querySelector('label').innerHTML = '';
+            }
             this.initEvents();
             this.getPaymentHtml();
         },
