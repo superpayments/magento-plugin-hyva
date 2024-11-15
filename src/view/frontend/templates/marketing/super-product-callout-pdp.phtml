@@ -7,16 +7,16 @@ $viewModel = $block->getData('view_model');
 <?php if ($viewModel->getPdpBanner()): ?>
     <?php
         $product = $block->getProduct();
-        $price = $product->getPrice();
-
+        $price = $product->getFinalPrice();
         if (empty($price)) {
-            $price = $product->getData(\Magento\Catalog\Api\Data\ProductInterface::PRICE);
+            $price = $product->getData('final_price') ?? $product->getData(\Magento\Catalog\Api\Data\ProductInterface::PRICE);
         }
+        $price = $viewModel->getPriceConverter()->minorUnitAmount($price);
 
         $bannerData = $viewModel->getWebComponentData('product-detail');
     ?>
 
     <div class="super-container w-full mt-5 mb-8 [&>*]:my-0">
-        <?= '<super-product-callout page="' . $bannerData['page'] . '" cartId="' . $bannerData['cart']['id'] . '" productAmount="' . floatval($price)*100 . '" productQuantity="1"></super-product-callout>'; ?>
+        <?= '<super-product-callout page="' . $bannerData['page'] . '" cartId="' . $bannerData['cart']['id'] . '" productAmount="' . $price . '" productQuantity="1"></super-product-callout>'; ?>
     </div>
 <?php endif; ?>
