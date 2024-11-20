@@ -6,34 +6,30 @@ $bannerMode = $viewModel->getBannerMode();
 $isHomePage = $viewModel->getIsHomePage();
 $isCheckout = $viewModel->getIsCheckout();
 $bannerData = [];
-?>
 
-<div id="top-super-banner"
+if ($bannerMode == "allpages" && $isCheckout) {
+    $bannerData = $viewModel->getWebComponentData('checkout', true);
+} else if (($bannerMode == "allpages" && !$isCheckout) ||
+        ($bannerMode == "homepage" && $isHomePage)) {
+    $bannerData = $viewModel->getWebComponentData();
+}
+
+if (!empty($bannerData)) {
+    ?>
+    <div id="top-super-banner"
      x-data="SuperTopBanner()"
      class="h-0 shadow-[inset_0_-1px_2px_0_rgba(0,0,0,.125)] bg-white transition-[height] duration-500
             [&>*]:opacity-0 [&>*]:invisible [&>*]:delay-200 [&>*]:transition-opacity"
      :class="loaded && 'h-[52px] [&>*]:opacity-100 [&>*]:!visible'">
+        <?php echo '<super-banner cartAmount="' . $bannerData['minorUnitAmount'] . '" page="' .  $bannerData['page'] . '" cartId="' . $bannerData['cart']['id'] . '" cartItems="' . $viewModel->cartItemsEncode($bannerData['cart']['items']) . '"></super-banner>'; ?>
+    </div>
+    <script>
+        const SuperTopBanner = () => ({
+            loaded: false,
 
-    <?php
-        if ($bannerMode == "allpages" && $isCheckout) {
-            $bannerData = $viewModel->getWebComponentData('checkout', true);
-        } else if (($bannerMode == "allpages" && !$isCheckout) ||
-                ($bannerMode == "homepage" && $isHomePage)) {
-            $bannerData = $viewModel->getWebComponentData();
-        }
-
-        if (!empty($bannerData)) {
-            echo '<super-banner cartAmount="' . $bannerData['minorUnitAmount'] . '" page="' .  $bannerData['page'] . '" cartId="' . $bannerData['cart']['id'] . '" cartItems="' . $viewModel->cartItemsEncode($bannerData['cart']['items']) . '"></super-banner>';
-        }
-    ?>
-</div>
-
-<script>
-    const SuperTopBanner = () => ({
-        loaded: false,
-
-        init() {
-            window.addEventListener('load', () => { this.loaded = true });
-        }
-    });
-</script>
+            init() {
+                window.addEventListener('load', () => { this.loaded = true });
+            }
+        });
+    </script>
+<?php } ?>
