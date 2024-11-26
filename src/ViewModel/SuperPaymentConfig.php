@@ -16,9 +16,9 @@ class SuperPaymentConfig implements ArgumentInterface
         $this->scopeConfig = $scopeConfig;
     }
 
-    public function getDefaultSelectedValue()
+    public function getDefaultSelectedValue(): bool
     {
-        return $this->scopeConfig->getValue(
+        return $this->scopeConfig->isSetFlag(
             'payment/super_payment_gateway/default_selected',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
