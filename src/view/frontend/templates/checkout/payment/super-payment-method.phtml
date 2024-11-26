@@ -1,25 +1,29 @@
 <?php declare(strict_types=1);
-    use Magento\Framework\Escaper;
 
-    /** @var Escaper $escaper */
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Magento\Framework\View\Element\Template $block */
 
-    $logoPath = $this->getViewFileUrl('Superpayments_SuperPaymentHyva/images/superbuttonicon.webp');
-    $superPaymentConfig = $block->getData('superPaymentConfig');
-    $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
+$superPaymentConfig = $block->getData('superPaymentConfig');
+$isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 ?>
 
 <script>
     const initSuperPaymentMethod = {
         method: document.querySelector('li[id*="super_payment_gateway"]'),
-        logo: '<?= $block->escapeUrl($logoPath); ?>',
-        isDefault: <?= $block->escapeJs($isDefaultMethod); ?>,
+        isDefault: <?= $escaper->escapeJs($isDefaultMethod); ?>,
         canSetMethodByDefault: false,
         activeMethod: '',
         title: '',
         description: '',
 
         init() {
-            this.method.querySelector('label').innerHTML = '';
+            if (!this.method) {
+                console.error('Payment method element not found');
+                return;
+            }
+
+            const label = this.method.querySelector('label');
+            if (label) label.innerHTML = '';
 
             this.initEvents();
             this.getPaymentHtml();
@@ -37,7 +41,16 @@
                 this.activeMethod = event.detail.method;
                 this.setPaymentData();
                 this.showDescription();
+
+                if (this.activeMethod === 'super_payment_gateway') {
+                    this.clonePlaceHolderBtn();
+                } else {
+                    document.querySelector('[x-bind="buttonPlaceOrder()"]').classList.remove('hidden');
+                    document.querySelector('.btn-superpayment-place-order').remove();
+                }
             });
+
+            document.addEventListener('checkout:superpayment:place-order', this.validateSubmition.bind(this));
         },
         
         getPaymentHtml() {
@@ -51,20 +64,25 @@
             };
 
             fetch(serviceUrl, options)
-                .then(response => response.json())
+                .then(resp => {
+                    if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
+                    return resp.json();
+                })
                 .then(json => {
-                    this.title = json['title'];
-                    this.description = json['description'];
+                    const { title, description } = json;
+
+                    this.title = title || '';
+                    this.description = description || '';
                     this.setPaymentData();
 
-                    // Set by default if neccessary
+                    // Set by default if necessary
                     if (this.isDefault && this.canSetMethodByDefault) {
-                        this.method.querySelector('input').click();
-                        this.showDescription();
-                    } else {
-                        this.showDescription();
+                        this.method.querySelector('input')?.click();
                     }
-                });
+
+                    this.showDescription();
+                })
+                .catch(err => console.error('Fetch error:', err));
         },
 
         setPaymentData() {
@@ -72,12 +90,7 @@
             const content = this.method.querySelector('#payment-method-view-super_payment_gateway');
 
             content ? content.remove() : null;
-
-            label.innerHTML = 
-                `<div class="text-gray-700 font-bold flex flex-wrap items-center gap-3">
-                    <img src="${this.logo}" alt="SuperPayment logo" class="super_payments_logo" width="60" height="26"/>
-                    <div>${this.title}</div>
-                </div>`;
+            label.innerHTML = this.title;
 
             this.method.insertAdjacentHTML('beforeend', `
                 <div id="payment-method-view-super_payment_gateway" class="hidden w-full pl-8 mt-4">
@@ -87,13 +100,69 @@
         },
 
         showDescription() {
-            const description = this.method.querySelector('#payment-method-view-super_payment_gateway');
+            const description = this.method?.querySelector('#payment-method-view-super_payment_gateway');
+            if (!description) return;
 
-            if (this.activeMethod === 'super_payment_gateway') {
-                description.classList.remove('hidden');
+            this.activeMethod === 'super_payment_gateway' 
+                ? description.classList.remove('hidden')
+                : description.classList.add('hidden');
+        },
+
+        clonePlaceHolderBtn() {
+            const button = document.querySelector('[x-bind="buttonPlaceOrder()"]');
+
+            if (!button) {
+                console.error('Place Order button not found');
+                return;
             } else {
-                description.classList.add('hidden');
+                const existing = document.querySelector('.btn-superpayment-place-order');
+
+                if (existing) {
+                    existing.remove();
+                } else {
+                    const clone = button.cloneNode(true);
+                    const attributes = ['x-spread', 'x-bind', 'data-step'];
+
+                    attributes.forEach(attr => clone.removeAttribute(attr));
+                    clone.classList.remove('btn-place-order');
+                    clone.classList.add('btn-superpayment-place-order');
+
+                    button.insertAdjacentElement('afterend', clone);
+
+                    clone.addEventListener('click', (event) => {
+                        document.dispatchEvent(new CustomEvent('checkout:superpayment:place-order'));
+                    });
+                }
+
+                button.classList.add('hidden');
             }
+        },
+
+        validateSubmition() { 
+            const button = document.querySelector('[x-bind="buttonPlaceOrder()"]');
+
+            if (window.superCheckout) {
+                Magewire.dispatchEvent('loader:start');
+
+                window.superCheckout.submit().then((resp) => {
+                    if (resp.status === 'SUCCESS') {
+                        button.click();
+                    } else if (resp.status === 'FAILURE') {
+                        this.setMessage('error', resp.errorMessage);
+                    }
+                }).catch((err) => {
+                    console.error(err);
+                    this.setMessage('error', `An error occurred on the server. Please try again, if the problem persists please contact us. (${err})`);
+                }).finally(() => {
+                    Magewire.dispatchEvent('loader:done');
+                });
+            } else {
+                console.error('window.superCheckout doesn\'t exist');
+            }
+        },
+
+        setMessage(type, text = '', time = 5000) {
+            dispatchMessages([{ type, text }], time);
         }
     };
 
