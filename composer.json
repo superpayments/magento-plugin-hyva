@@ -1,6 +1,6 @@
 {
     "name": "superpayments/superpayment-hyva",
-    "version": "1.0.0",
+    "version": "2.6.0",
     "description": "Hyvä Themes Compatibility module for Superpayment",
     "type": "magento2-module",
     "license": [
