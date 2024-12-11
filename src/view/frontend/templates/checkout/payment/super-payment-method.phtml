@@ -7,10 +7,34 @@ $superPaymentConfig = $block->getData('superPaymentConfig');
 $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 ?>
 
+<style>
+    #payment-method-option-super_payment_gateway label:empty {
+        height: 24px;
+    }
+
+    #payment-method-option-super_payment_gateway label:empty,
+    #payment-method-option-super_payment_gateway label > *:not(.super-payment-method-title) {
+        position: relative;
+        color: transparent;
+    }
+
+    #payment-method-option-super_payment_gateway label:empty::before,
+    #payment-method-option-super_payment_gateway label > *:not(.super-payment-method-title)::before {
+        content: '';
+
+        position: absolute;
+        top: 7px;
+        left: 0;
+        width: 50px;
+        height: 10px;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 52 12" xml:space="preserve"><circle fill="%23000" stroke="none" cx="6" cy="6" r="6"><animate attributeName="opacity" dur="1s" values="0;1;0" repeatCount="indefinite" begin="0.1s"/></circle><circle fill="%23000" stroke="none" cx="26" cy="6" r="6"><animate attributeName="opacity" dur="1s" values="0;1;0" repeatCount="indefinite" begin="0.2s"/></circle><circle fill="%23000" stroke="none" cx="46" cy="6" r="6"><animate attributeName="opacity" dur="1s" values="0;1;0" repeatCount="indefinite" begin="0.3s"/></circle></svg>') no-repeat center center / contain;
+    }
+</style>
+
 <script>
     const initSuperPaymentMethod = {
         method: document.querySelector('li[id*="super_payment_gateway"]'),
-        isDefault: <?= $escaper->escapeJs($isDefaultMethod); ?>,
+        isDefault: <?= json_encode($isDefaultMethod); ?>,
         canSetMethodByDefault: false,
         activeMethod: '',
         title: '',
@@ -32,27 +56,58 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         initEvents() {
             window.addEventListener('checkout:step:loaded', (event) => {
                 const component = Magewire.components.findComponent('checkout.payment.methods');
-                const savedMethod = component.serverMemo.data.method;
+                const savedMethod = component?.serverMemo.data.method;
 
                 !savedMethod ? this.canSetMethodByDefault = true : null;
             });
 
             window.addEventListener('checkout:payment:method-activate', (event) => {
                 this.activeMethod = event.detail.method;
-                this.setPaymentData();
-                this.showDescription();
+                this.getPaymentHtml();
 
                 if (this.activeMethod === 'super_payment_gateway') {
                     this.clonePlaceHolderBtn();
                 } else {
                     document.querySelector('[x-bind="buttonPlaceOrder()"]').classList.remove('hidden');
-                    document.querySelector('.btn-superpayment-place-order').remove();
+                    document.querySelector('.btn-superpayment-place-order')?.remove();
                 }
             });
 
+            window.addEventListener('checkout:shipping:method-activate', (event) => {
+                this.getPaymentHtml();
+            });
+
             document.addEventListener('checkout:superpayment:place-order', this.validateSubmition.bind(this));
+
+            // Fix label strange behaviour
+            document.addEventListener('livewire:load', () => {
+                const label = this.method.querySelector('label');
+
+                const checkoutUpdateEvents = [
+                    'checkout.shipping-details.address-form',
+                    'checkout.shipping.methods',
+                    'checkout.payment.methods',
+                    'price-summary.total-segments',
+                ];
+
+                Livewire.hook('message.sent', (_, component) => {
+                    if (checkoutUpdateEvents.includes(component.id)) {
+                        Magewire.dispatchEvent('loader:start');
+                    }
+                });
+
+                Livewire.hook('message.received', (message) => {
+                    const { updateQueue, component } = message;
+
+                    if (component.id === 'checkout.payment.methods') {
+                        requestAnimationFrame(() => {
+                            this.getPaymentHtml();
+                        });
+                    }
+                });
+            });
         },
-        
+
         getPaymentHtml() {
             const serviceUrl = `${window.location.origin}/superpayment/discount/offerbanner`;
             const options = {
@@ -63,13 +118,17 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                 }
             };
 
+            setTimeout(() => Magewire.dispatchEvent('loader:start'), 2500);
+
             fetch(serviceUrl, options)
                 .then(resp => {
+                    Magewire.dispatchEvent('loader:start');
                     if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
                     return resp.json();
                 })
                 .then(json => {
                     const { title, description } = json;
+                    Magewire.dispatchEvent('loader:start');
 
                     this.title = title || '';
                     this.description = description || '';
@@ -82,7 +141,10 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
                     this.showDescription();
                 })
-                .catch(err => console.error('Fetch error:', err));
+                .catch(err => console.error('Fetch error:', err))
+                .finally(() => {
+                    setTimeout(() => Magewire.dispatchEvent('loader:done'), 2000);
+                });
         },
 
         setPaymentData() {
@@ -103,7 +165,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
             const description = this.method?.querySelector('#payment-method-view-super_payment_gateway');
             if (!description) return;
 
-            this.activeMethod === 'super_payment_gateway' 
+            this.activeMethod === 'super_payment_gateway'
                 ? description.classList.remove('hidden')
                 : description.classList.add('hidden');
         },
@@ -138,7 +200,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
             }
         },
 
-        validateSubmition() { 
+        validateSubmition() {
             const button = document.querySelector('[x-bind="buttonPlaceOrder()"]');
 
             if (window.superCheckout) {
