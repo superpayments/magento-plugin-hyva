@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Hyva Super Payment Method JavaScript loaded!');
 
     const initSuperPaymentMethod = {
         method: document.querySelector('li[id*="super_payment_gateway"]'),
@@ -8,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
         activeMethod: '',
         title: '',
         description: '',
+        htmlProcessing: false,
 
         init() {
             if (!this.method) {
@@ -32,50 +32,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
             window.addEventListener('checkout:payment:method-activate', (event) => {
                 this.activeMethod = event.detail.method;
-                this.getPaymentHtml();
 
                 if (this.activeMethod === 'super_payment_gateway') {
                     this.clonePlaceHolderBtn();
                 } else {
                     document.querySelector('[x-bind="buttonPlaceOrder()"]').classList.remove('hidden');
                     document.querySelector('.btn-superpayment-place-order')?.remove();
+                    this.addSuperPaymentMethodTitle();
                 }
             });
 
-            window.addEventListener('checkout:shipping:method-activate', (event) => {
-                this.getPaymentHtml();
-            });
+            window.addEventListener('checkout:superpayment:place-order', this.validateSubmition.bind(this));
 
-            document.addEventListener('checkout:superpayment:place-order', this.validateSubmition.bind(this));
-
-            // Fix label strange behaviour
-            document.addEventListener('livewire:load', () => {
-                const label = this.method.querySelector('label');
-
-                const checkoutUpdateEvents = [
-                    'checkout.shipping-details.address-form',
-                    'checkout.shipping.methods',
-                    'checkout.payment.methods',
-                    'price-summary.total-segments',
-                ];
-
-                Livewire.hook('message.sent', (_, component) => {
-                    if (checkoutUpdateEvents.includes(component.id)) {
-                        Magewire.dispatchEvent('loader:start');
-                    }
-                });
-
-                Livewire.hook('message.received', (_, component) => {
-                    if (component.id === 'checkout.payment.methods') {
+            if (window.Magewire) {
+                window.Magewire.hook('message.processed', (message, component) => {
+                    if (component.id === 'price-summary.total-segments') {
                         requestAnimationFrame(() => {
                             this.getPaymentHtml();
                         });
                     }
+
+                    if (component.id === 'checkout.payment.methods') {
+                        if (component?.serverMemo?.data?.method === 'super_payment_gateway') {
+                            this.htmlProcessing = false;
+                            requestAnimationFrame(() => {
+                                this.getPaymentHtml();
+                            });
+                        } else {
+                            this.addSuperPaymentMethodTitle();
+                        }
+                    }
                 });
-            });
+            }
+
         },
 
         getPaymentHtml(isFirstLoad = false) {
+            if (this.htmlProcessing) {
+                return;
+            }
+
             const serviceUrl = `${window.location.origin}/superpayment/discount/offerbanner`;
             const options = {
                 method: 'POST',
@@ -85,17 +81,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
 
-            setTimeout(() => Magewire.dispatchEvent('loader:start'), 2500);
-
             fetch(serviceUrl, options)
                 .then(resp => {
-                    Magewire.dispatchEvent('loader:start');
                     if (!resp.ok) throw new Error(`HTTP Error: ${resp.status}`);
                     return resp.json();
                 })
                 .then(json => {
                     const { title, description } = json;
-                    Magewire.dispatchEvent('loader:start');
 
                     this.title = title || '';
                     this.description = description || '';
@@ -108,10 +100,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     this.showDescription();
                 })
-                .catch(err => console.error('Fetch error:', err))
-                .finally(() => {
-                    setTimeout(() => Magewire.dispatchEvent('loader:done'), 2000);
-                });
+                .catch(err => console.error('Fetch error:', err));
+
+            this.htmlProcessing = true;
+            setTimeout(() => {
+                this.htmlProcessing = false;
+                //this.addSuperPaymentMethodTitle();
+            }, 1500);
         },
 
         setPaymentData() {
@@ -192,9 +187,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
         setMessage(type, text = '', time = 5000) {
             dispatchMessages([{ type, text }], time);
+        },
+
+        addSuperPaymentMethodTitle() {
+            if (this.htmlProcessing) {
+                return;
+            }
+
+            const paymentLabel = document.querySelector('#payment-method-option-super_payment_gateway label');
+
+            if (paymentLabel) {
+                const hasNonTitleChildren = Array.from(paymentLabel.children).some(
+                    (child) => !child.classList.contains('super-payment-method-title')
+                );
+
+                if (hasNonTitleChildren) {
+                    const newContent = document.createElement('div');
+                    newContent.className = 'super-payment-method-title';
+                    newContent.innerHTML = '<super-payment-method-title page="checkout"></super-payment-method-title>';
+                    paymentLabel.replaceChildren(newContent);
+                }
+            }
         }
+
     };
 
     initSuperPaymentMethod.init();
-
 });
