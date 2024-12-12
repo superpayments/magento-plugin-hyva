@@ -74,7 +74,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                 }
             });
 
-            window.addEventListener('checkout:superpayment:place-order', this.validateSubmition.bind(this));
+            document.addEventListener('checkout:superpayment:place-order', this.validateSubmition.bind(this));
 
             if (window.Magewire) {
                 this.attachListener();
