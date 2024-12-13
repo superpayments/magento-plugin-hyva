@@ -50,7 +50,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
             if (label) label.innerHTML = '';
 
             this.initEvents();
-            this.getPaymentHtml();
+            this.getPaymentHtml(true);
         },
 
         initEvents() {
@@ -98,7 +98,6 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
                 Livewire.hook('message.received', (message) => {
                     const { updateQueue, component } = message;
-
                     if (component.id === 'checkout.payment.methods') {
                         requestAnimationFrame(() => {
                             this.getPaymentHtml();
@@ -135,7 +134,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                     this.setPaymentData();
 
                     // Set by default if necessary
-                    if (this.isDefault && this.canSetMethodByDefault) {
+                    if (this.isDefault && this.canSetMethodByDefault && isFirstLoad) {
                         this.method.querySelector('input')?.click();
                     }
 
