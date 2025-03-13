@@ -40,6 +40,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         title: '',
         description: '',
         total: '',
+        canSetMemberNumber: true,
 
         init() {
             if (!this.method) {
@@ -103,8 +104,17 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                             this.setPaymentContent();
                         });
                     }
+
+                    if (component.id === 'checkout.shipping-details.address-form') {
+                        const shippingAddress = component.serverMemo.data.address;
+                        if (shippingAddress && shippingAddress.telephone) {
+                            this.insertMemberNumber(shippingAddress.telephone);
+                        }
+                    }
+
                 });
             });
+
         },
 
         getPaymentHtml() {
@@ -251,7 +261,26 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                 this.setPaymentData();
                 this.showDescription();
             }
+        },
+
+        insertMemberNumber: function(phoneNumber = null) {
+            try {
+                const superCheckout = document.querySelector('super-checkout');
+                const existingPhoneNumber = superCheckout?.getAttribute('phone-number')?.trim();
+                if (!window.superCheckout || !superCheckout || !this.canSetMemberNumber || (existingPhoneNumber && existingPhoneNumber !== '')) {
+                    return;
+                }
+
+                var billingPhone = phoneNumber !== null ? phoneNumber : '';
+                if (billingPhone && billingPhone.length >= 10) {
+                    superCheckout.setAttribute('phone-number', billingPhone);
+                    this.canSetMemberNumber = false;
+                }
+            } catch (error) {
+                console.error('Superpayments insert member number error occurred:', error);
+            }
         }
+
     };
 
     initSuperPaymentMethod.init();
