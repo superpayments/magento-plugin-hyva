@@ -273,15 +273,6 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
                 var billingPhone = phoneNumber !== null ? phoneNumber : '';
                 if (billingPhone && billingPhone.length >= 10) {
-                    const event = new CustomEvent('superpayments:displaySignIn', {
-                        bubbles: true,
-                        cancelable: false,
-                        composed: true,
-                        detail: {
-                            billingPhone,
-                        }
-                    });
-                    document.dispatchEvent(event);
                     superCheckout.setAttribute('phone-number', billingPhone);
                     this.canSetMemberNumber = false;
                 }
