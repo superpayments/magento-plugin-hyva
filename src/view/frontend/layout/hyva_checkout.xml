@@ -2,14 +2,14 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
 
-        <referenceContainer name="checkout.payment.methods.after">
-            <block  name="checkout.payment.method.super.payment"
-                    template="Superpayments_SuperPaymentHyva::checkout/payment/super-payment-method.phtml">
+        <referenceContainer name="magewire.plugin.scripts">
+            <block name="checkout.payment.method.super.payment"
+                   template="Superpayments_SuperPaymentHyva::checkout/payment/super-payment-method.phtml">
                 <arguments>
                     <argument name="superPaymentConfig" xsi:type="object">Superpayments\SuperPaymentHyva\ViewModel\SuperPaymentConfig</argument>
                 </arguments>
             </block>
         </referenceContainer>
-        
+
     </body>
 </page>

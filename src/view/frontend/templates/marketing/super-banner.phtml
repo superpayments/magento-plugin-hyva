@@ -1,6 +1,7 @@
 <?php
-/**@var Magento\Framework\View\Element\Template $block */
-/**@var Superpayments\SuperPayment\ViewModel\MarketingBanner $viewModel */
+/** @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp */
+/** @var Magento\Framework\View\Element\Template $block */
+/** @var Superpayments\SuperPayment\ViewModel\MarketingBanner $viewModel */
 $viewModel = $block->getData('view_model');
 $bannerMode = $viewModel->getBannerMode();
 $isHomePage = $viewModel->getIsHomePage();
@@ -9,27 +10,45 @@ $bannerData = [];
 
 if ($bannerMode == "allpages" && $isCheckout) {
     $bannerData = $viewModel->getWebComponentData('checkout', true);
-} else if (($bannerMode == "allpages" && !$isCheckout) ||
-        ($bannerMode == "homepage" && $isHomePage)) {
+}
+
+if (($bannerMode == "allpages" && !$isCheckout) ||
+    ($bannerMode == "homepage" && $isHomePage)
+) {
     $bannerData = $viewModel->getWebComponentData();
 }
 
-if (!empty($bannerData)) {
-    ?>
+if (!empty($bannerData)):
+?>
     <div id="top-super-banner"
-     x-data="SuperTopBanner()"
-     class="h-0 shadow-[inset_0_-1px_2px_0_rgba(0,0,0,.125)] bg-white transition-[height] duration-500
-            [&>*]:opacity-0 [&>*]:invisible [&>*]:delay-200 [&>*]:transition-opacity"
-     :class="loaded && 'h-[52px] [&>*]:opacity-100 [&>*]:!visible'">
+         x-data="SuperTopBanner"
+         class="h-0 shadow-[inset_0_-1px_2px_0_rgba(0,0,0,.125)] bg-white transition-[height] duration-500
+                [&>*]:opacity-0 [&>*]:invisible [&>*]:delay-200 [&>*]:transition-opacity"
+         :class="getClasses">
+
         <?php echo '<super-banner cartAmount="' . $bannerData['minorUnitAmount'] . '" page="' .  $bannerData['page'] . '" cartId="' . $bannerData['cart']['id'] . '" cartItems="' . $viewModel->cartItemsEncode($bannerData['cart']['items']) . '"></super-banner>'; ?>
     </div>
+
     <script>
         const SuperTopBanner = () => ({
             loaded: false,
 
             init() {
                 window.addEventListener('load', () => { this.loaded = true });
+            },
+
+            getClasses() {
+                return {
+                    'h-[52px] [&>*]:opacity-100 [&>*]:!visible': this.loaded,
+                }
             }
         });
+
+        window.addEventListener(
+            'alpine:init',
+            () => Alpine.data('SuperTopBanner', SuperTopBanner),
+            {once: true}
+        )
     </script>
-<?php } ?>
+    <?php isset($hyvaCsp) && $hyvaCsp->registerInlineScript(); ?>
+<?php endif; ?>
