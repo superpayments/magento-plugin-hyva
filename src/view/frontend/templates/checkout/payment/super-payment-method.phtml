@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+/** @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp */
 /** @var \Magento\Framework\Escaper $escaper */
 /** @var \Magento\Framework\View\Element\Template $block */
 
@@ -280,8 +281,8 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                 console.error('Superpayments insert member number error occurred:', error);
             }
         }
-
     };
 
     initSuperPaymentMethod.init();
 </script>
+<?php isset($hyvaCsp) && $hyvaCsp->registerInlineScript(); ?>
