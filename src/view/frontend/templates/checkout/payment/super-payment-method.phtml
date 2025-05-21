@@ -34,7 +34,8 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
 <script>
     const initSuperPaymentMethod = {
-        method: document.querySelector('li[id*="super_payment_gateway"]'),
+        method: document.querySelector('[wire\\:key="super_payment_gateway"]') || document.querySelector('#payment-method-super_payment_gateway'),
+        placeOrderButton: document.querySelector('.btn-place-order') || document.querySelector('[x-spread="buttonPlaceOrder()"]'),
         isDefault: <?= json_encode($isDefaultMethod); ?>,
         canSetMethodByDefault: false,
         activeMethod: '',
@@ -77,12 +78,12 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                 if (this.activeMethod === 'super_payment_gateway') {
                     this.clonePlaceHolderBtn();
                 } else {
-                    document.querySelector('[x-bind="buttonPlaceOrder()"]').classList.remove('hidden');
+                    this.placeOrderButton.classList.remove('hidden');
                     document.querySelector('.btn-superpayment-place-order')?.remove();
                 }
             });
 
-            document.addEventListener('checkout:superpayment:place-order', this.validateSubmition.bind(this));
+            document.addEventListener('checkout:superpayment:place-order', this.validateSubmission.bind(this));
 
             // Fix label strange behaviour
             document.addEventListener('livewire:load', () => {
@@ -174,9 +175,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         },
 
         clonePlaceHolderBtn() {
-            const button = document.querySelector('[x-bind="buttonPlaceOrder()"]');
-
-            if (!button) {
+            if (!this.placeOrderButton) {
                 console.error('Place Order button not found');
                 return;
             } else {
@@ -185,26 +184,26 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                 if (existing) {
                     existing.remove();
                 } else {
-                    const clone = button.cloneNode(true);
+                    const clone = this.placeOrderButton.cloneNode(true);
                     const attributes = ['x-spread', 'x-bind', 'data-step'];
 
                     attributes.forEach(attr => clone.removeAttribute(attr));
                     clone.classList.remove('btn-place-order');
                     clone.classList.add('btn-superpayment-place-order');
 
-                    button.insertAdjacentElement('afterend', clone);
+                    this.placeOrderButton.insertAdjacentElement('afterend', clone);
 
                     clone.addEventListener('click', (event) => {
                         document.dispatchEvent(new CustomEvent('checkout:superpayment:place-order'));
                     });
                 }
 
-                button.classList.add('hidden');
+                this.placeOrderButton.classList.add('hidden');
             }
         },
 
-        validateSubmition() {
-            const button = document.querySelector('[x-bind="buttonPlaceOrder()"]');
+        validateSubmission() {
+            const button = this.placeOrderButton;
 
             if (window.superCheckout) {
                 Magewire.dispatchEvent('loader:start');
