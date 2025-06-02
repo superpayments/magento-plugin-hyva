@@ -34,8 +34,8 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
 <script>
     const initSuperPaymentMethod = {
-        method: document.querySelector('[wire\\:key="super_payment_gateway"]') || document.querySelector('#payment-method-super_payment_gateway'),
-        placeOrderButton: document.querySelector('.btn-place-order') || document.querySelector('[x-spread="buttonPlaceOrder()"]'),
+        method: document.querySelector('[wire\\:key="super_payment_gateway"], #payment-method-super_payment_gateway'),
+        placeOrderButton: document.querySelector('[x-spread="buttonPlaceOrder()"], [x-bind^="buttonPlaceOrder"], .btn-place-order'),
         isDefault: <?= json_encode($isDefaultMethod); ?>,
         canSetMethodByDefault: false,
         activeMethod: '',
@@ -59,15 +59,16 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
         initEvents() {
             window.addEventListener('checkout:step:loaded', (event) => {
-                const component = Magewire.components.findComponent('checkout.payment.methods');
-                const savedMethod = component?.serverMemo.data.method;
+                const paymentComponent =
+                    Magewire.components.findComponent('checkout.payment.methods') ||
+                    Magewire.components.findComponent('checkout.payment-methods');
+                const savedMethod = paymentComponent?.serverMemo?.data?.method;
 
                 !savedMethod ? this.canSetMethodByDefault = true : null;
 
-                const total = document.querySelector('.item.grand_total');
-
-                if (total) {
-                    this.total = this.extractGrandTotal(total.outerHTML);
+                const totalEl = document.querySelector('.item.grand_total, .item.grand-total');
+                if (totalEl) {
+                    this.total = this.extractGrandTotal(totalEl.outerHTML);
                 }
             });
 
@@ -85,15 +86,26 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
             document.addEventListener('checkout:superpayment:place-order', this.validateSubmission.bind(this));
 
-            // Fix label strange behaviour
             document.addEventListener('livewire:load', () => {
-                const label = this.method.querySelector('label');
-
                 Livewire.hook('message.received', (_, component) => {
-                    if (component.id === 'price-summary.total-segments') {
-                        const newTotal = this.extractGrandTotal(_.response.effects.html);
+                    const name = component.fingerprint?.name || component.id;
 
-                        if (newTotal !== this.total) {
+                    if (name === 'price-summary.total-segments' || name === 'checkout.price-summary') {
+                        let newTotal = null;
+                        const html = _.response?.effects?.html;
+
+                        if (html) {
+                            newTotal = this.extractGrandTotal(html);
+                        }
+                        else if (component.serverMemo?.data?.segments) {
+                            const seg = component.serverMemo.data.segments.find(s => s.code === 'grand_total');
+                            if (seg) {
+                                const floatVal = parseFloat(seg.value.replace(/[^\d.,-]+/g, '').replace(',', '.'));
+                                newTotal = String(Math.round(floatVal * 100));
+                            }
+                        }
+
+                        if (newTotal != null && newTotal !== this.total) {
                             this.setTotalToDescription(newTotal);
                             this.total = newTotal;
                         } else {
@@ -101,22 +113,20 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                         }
                     }
 
-                    if (component.id === 'checkout.payment.methods') {
+                    if (name === 'checkout.payment.methods') {
                         requestAnimationFrame(() => {
                             this.setPaymentContent();
                         });
                     }
 
-                    if (component.id === 'checkout.shipping-details.address-form') {
-                        const shippingAddress = component.serverMemo.data.address;
-                        if (shippingAddress && shippingAddress.telephone) {
+                    if (name === 'checkout.shipping-details.address-form') {
+                        const shippingAddress = component.serverMemo?.data?.address;
+                        if (shippingAddress?.telephone) {
                             this.insertMemberNumber(shippingAddress.telephone);
                         }
                     }
-
                 });
             });
-
         },
 
         getPaymentHtml() {
@@ -230,7 +240,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         },
 
         extractGrandTotal(html) {
-            const regTotal = /<div class="item grand_total[\s\S]*?<span class="value[^>]*">([\s\S]*?)<\/span>/;
+            const regTotal = /<div[^>]*class="[^"]*\bgrand_total\b[^"]*"[^>]*>[\s\S]*?<span[^>]*class="[^"]*\bvalue\b[^"]*"[^>]*>([\s\S]*?)<\/span>/;
             const regClean = /[\n\r\s]+|[^\d.,-]/g;
 
             if (!html) return this.total;
