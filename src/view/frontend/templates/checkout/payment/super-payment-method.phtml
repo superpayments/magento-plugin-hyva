@@ -9,18 +9,23 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 ?>
 
 <style>
-    #payment-method-option-super_payment_gateway label:empty {
+    li#payment-method-option-super_payment_gateway label:empty,
+    #payment-method-option-super_payment_gateway label > span:empty {
         height: 24px;
     }
 
-    #payment-method-option-super_payment_gateway label:empty,
-    #payment-method-option-super_payment_gateway label > *:not(.super-payment-method-title) {
+    li#payment-method-option-super_payment_gateway label:empty,
+    #payment-method-option-super_payment_gateway label > span:empty,
+    li#payment-method-option-super_payment_gateway label > *:not(.super-payment-method-title),
+    #payment-method-option-super_payment_gateway label > span > *:not(.super-payment-method-title) {
         position: relative;
         color: transparent;
     }
 
-    #payment-method-option-super_payment_gateway label:empty::before,
-    #payment-method-option-super_payment_gateway label > *:not(.super-payment-method-title)::before {
+    li#payment-method-option-super_payment_gateway label:empty::before,
+    #payment-method-option-super_payment_gateway label > span:empty::before,
+    li#payment-method-option-super_payment_gateway label > *:not(.super-payment-method-title)::before,
+    #payment-method-option-super_payment_gateway label > span > *:not(.super-payment-method-title)::before {
         content: '';
 
         position: absolute;
@@ -50,7 +55,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                 return;
             }
 
-            const label = this.method.querySelector('label');
+            const label = this.getPaymentLabel();
             if (label) label.innerHTML = '';
 
             this.initEvents();
@@ -145,6 +150,11 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
                     return resp.json();
                 })
                 .then(json => {
+                    if (json.exception) {
+                        console.error('API exception:', json.exception);
+                        return;
+                    }
+
                     const { title, description } = json;
 
                     this.title = title || '';
@@ -162,14 +172,16 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         },
 
         setPaymentData() {
-            const label = this.method.querySelector('label');
-            const content = this.method.querySelector('#payment-method-view-super_payment_gateway');
+            const label = this.getPaymentLabel();
+            if (label) label.innerHTML = this.title;
 
+            const content = this.method.querySelector('#payment-method-view-super_payment_gateway');
             content ? content.remove() : null;
-            label.innerHTML = this.title;
+
+            const cssStyle =  this.method.tagName.toLowerCase() === 'li' ? 'pl-8 mt-4' : 'p-4 pt-2';
 
             this.method.insertAdjacentHTML('beforeend', `
-                <div id="payment-method-view-super_payment_gateway" class="hidden w-full pl-8 mt-4">
+                <div id="payment-method-view-super_payment_gateway" class="hidden w-full ${cssStyle}">
                     ${this.description}
                 </div>
             `);
@@ -266,11 +278,11 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
         setPaymentContent() {
             const superTitle = document.querySelector('super-payment-method-title');
-
             if (!superTitle) {
                 this.setPaymentData();
-                this.showDescription();
             }
+
+            this.showDescription();
         },
 
         insertMemberNumber: function(phoneNumber = null) {
@@ -289,7 +301,14 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
             } catch (error) {
                 console.error('Superpayments insert member number error occurred:', error);
             }
+        },
+
+        getPaymentLabel() {
+            return this.method.tagName.toLowerCase() === 'li'
+                ? this.method.querySelector('label')
+                : this.method.querySelector('label span');
         }
+
     };
 
     initSuperPaymentMethod.init();
