@@ -70,7 +70,8 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
         initEvents() {
             window.addEventListener('checkout:step:loaded', (event) => {
-                if (event?.detail?.route === 'payment' && !this.initialized) {
+                const route = event?.detail?.route;
+                if ((route === 'payment' || route === 'onepage') && !this.initialized) {
                     this.init();
                 }
 
