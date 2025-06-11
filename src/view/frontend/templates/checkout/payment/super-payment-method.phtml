@@ -39,8 +39,8 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
 <script>
     const initSuperPaymentMethod = {
-        method: document.querySelector('[wire\\:key="super_payment_gateway"], #payment-method-super_payment_gateway'),
-        placeOrderButton: document.querySelector('[x-spread="buttonPlaceOrder()"], [x-bind^="buttonPlaceOrder"], .btn-place-order'),
+        method: null,
+        placeOrderButton: null,
         isDefault: <?= json_encode($isDefaultMethod); ?>,
         canSetMethodByDefault: false,
         activeMethod: '',
@@ -48,22 +48,34 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         description: '',
         total: '',
         canSetMemberNumber: true,
+        initialized: false,
 
         init() {
+            this.method = document.querySelector('[wire\\:key="super_payment_gateway"], #payment-method-super_payment_gateway');
+            this.placeOrderButton = document.querySelector('[x-spread="buttonPlaceOrder()"], [x-bind^="buttonPlaceOrder"], .btn-place-order');
+
             if (!this.method) {
-                console.error('Payment method element not found');
+                console.warn('SuperPayment method element not found');
                 return;
             }
+
+            if (this.initialized) return;
+            this.initialized = true;
 
             const label = this.getPaymentLabel();
             if (label) label.innerHTML = '';
 
-            this.initEvents();
             this.getPaymentHtml();
         },
 
         initEvents() {
             window.addEventListener('checkout:step:loaded', (event) => {
+                if (event?.detail?.route === 'payment' && !this.initialized) {
+                    this.init();
+                }
+
+                if (!this.initialized) return;
+
                 const paymentComponent =
                     Magewire.components.findComponent('checkout.payment.methods') ||
                     Magewire.components.findComponent('checkout.payment-methods');
@@ -78,7 +90,8 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
             });
 
             window.addEventListener('checkout:payment:method-activate', (event) => {
-                this.activeMethod = event.detail.method;
+                this.activeMethod = event?.detail?.method;
+                this.init();
                 this.setPaymentContent();
 
                 if (this.activeMethod === 'super_payment_gateway') {
@@ -93,6 +106,8 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
             document.addEventListener('livewire:load', () => {
                 Livewire.hook('message.received', (_, component) => {
+                    if (!this.initialized) return;
+
                     const name = component.fingerprint?.name || component.id;
 
                     if (name === 'price-summary.total-segments' || name === 'checkout.price-summary') {
@@ -311,6 +326,6 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
     };
 
-    initSuperPaymentMethod.init();
+    initSuperPaymentMethod.initEvents();
 </script>
 <?php isset($hyvaCsp) && $hyvaCsp->registerInlineScript(); ?>
