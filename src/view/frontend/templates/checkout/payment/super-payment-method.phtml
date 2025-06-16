@@ -179,7 +179,7 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
 
                     // Set by default if necessary
                     if (this.isDefault && this.canSetMethodByDefault) {
-                        this.method.querySelector('input')?.click();
+                        this.method?.querySelector('input')?.click();
                     }
 
                     this.showDescription();
@@ -188,6 +188,9 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         },
 
         setPaymentData() {
+            if (!this.method) {
+                return;
+            }
             const label = this.getPaymentLabel();
             if (label) label.innerHTML = this.title;
 
@@ -320,6 +323,9 @@ $isDefaultMethod = $superPaymentConfig->getDefaultSelectedValue();
         },
 
         getPaymentLabel() {
+            if (!this.method) {
+                return;
+            }
             return this.method.tagName.toLowerCase() === 'li'
                 ? this.method.querySelector('label')
                 : this.method.querySelector('label span');
