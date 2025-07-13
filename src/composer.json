@@ -4,8 +4,8 @@
     "version": "2.6.9",
     "type": "magento2-module",
     "require": {
-        "php": ">=7.4",
-        "superpayments/superpayment": ">=2.6.3"
+        "php": ">=7.4.33",
+        "superpayments/superpayment": ">=2.7.0"
     },
     "autoload": {
         "files": [

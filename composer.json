@@ -11,7 +11,7 @@
       "magento/framework": "*",
       "hyva-themes/magento2-hyva-checkout": "^1.1",
       "hyva-themes/magento2-compat-module-fallback": "*",
-      "superpayments/superpayment": "*"
+      "superpayments/superpayment": "2.7.0"
     },
     "autoload": {
       "files": [
